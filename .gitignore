@@ -31,3 +31,11 @@ Thumbs.db
 
 # Docker
 .docker/
+
+# Build output
+dist/
+build/
+
+
+# Coverage
+coverage/

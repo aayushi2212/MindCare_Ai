@@ -1,21 +1,19 @@
 /**
  * PURPOSE
  * -------
- * Wraps async route handlers to automatically forward errors to next().
- *
- * RESPONSIBILITIES
- * -------
- * - Eliminate try/catch boilerplate in controllers
- *
- * NEVER
- * -------
- * - Handle errors itself
+ * Wraps an async Express route handler and forwards any thrown error to next().
+ * Eliminates try/catch boilerplate in every controller.
  *
  * EXPORTS
  * -------
- * asyncHandler(fn) — higher-order function
+ * asyncHandler(fn) — returns a standard Express middleware
  *
  * DEPENDS ON
- * -------
- * express
+ * ----------
+ * none
  */
+
+const asyncHandler = (fn) => (req, res, next) =>
+  Promise.resolve(fn(req, res, next)).catch(next);
+
+export default asyncHandler;

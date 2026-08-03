@@ -2,13 +2,20 @@
  * PURPOSE
  * -------
  * Public entry point for the auth module.
- * All external imports must come through this file — never from internal paths.
+ * Only the router is exported — all internal services, repositories,
+ * and models are private to this module.
  *
- * EXPORTS
- * -------
- * Router and any services that other modules are permitted to call.
+ * Other modules that need to verify authentication use:
+ *   shared/middleware/auth.middleware.js  ← route protection
+ *   shared/utils/jwt.js                  ← token utilities (if needed)
  *
  * NEVER
- * -------
- * Export internal implementation details (repositories, models directly).
+ * -----
+ * - Import auth.service or auth.repository from outside this module
+ *
+ * DEPENDS ON
+ * ----------
+ * auth/routes/auth.routes.js
  */
+
+export { default } from './routes/auth.routes.js';
