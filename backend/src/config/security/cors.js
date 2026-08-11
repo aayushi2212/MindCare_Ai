@@ -28,6 +28,7 @@ const ALLOWED_ORIGINS = env.isDev
   ? [
       'http://localhost:5173',  // Vite dev server
       'http://localhost:3000',
+      'http://localhost:5000',
       env.CLIENT_URL,
     ]
   : [env.CLIENT_URL];

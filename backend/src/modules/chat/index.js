@@ -2,13 +2,19 @@
  * PURPOSE
  * -------
  * Public entry point for the chat module.
- * All external imports must come through this file — never from internal paths.
+ * Only the router is exported — all internal services, repositories,
+ * and models are private to this module.
  *
- * EXPORTS
- * -------
- * Router and any services that other modules are permitted to call.
+ * Other modules that need to reference conversation or message data
+ * should use the shared event bus or extend this module's index.
  *
  * NEVER
- * -------
- * Export internal implementation details (repositories, models directly).
+ * -----
+ * - Import chat.service or chat.repository from outside this module
+ *
+ * DEPENDS ON
+ * ----------
+ * chat/routes/chat.routes.js
  */
+
+export { default } from './routes/chat.routes.js';

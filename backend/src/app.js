@@ -39,7 +39,11 @@ import errorHandler  from './shared/middleware/error.middleware.js';
 import { NotFoundError } from './shared/errors/http-errors.js';
 
 // ── Feature modules ───────────────────────────────────────────────
-import authRouter from './modules/auth/index.js';
+import authRouter     from './modules/auth/index.js';
+import chatRouter     from './modules/chat/index.js';
+import contextRouter  from './modules/context/index.js';
+import responseRouter from './modules/response/index.js';
+import emotionRouter from './modules/emotion/index.js';
 
 // ── Side-effect modules (analytics listeners, etc.) ───────────────
 import './modules/analytics/index.js';
@@ -100,11 +104,14 @@ app.get('/api/health', (_req, res) => {
 /*                               API Routes                                   */
 /* -------------------------------------------------------------------------- */
 
-app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/auth',     authRouter);
+app.use('/api/v1/chat',     chatRouter);
+app.use('/api/v1/context',  contextRouter);
+app.use('/api/v1/response', responseRouter);
+app.use('/api/v1/emotion', emotionRouter);
 
 // TODO: mount these as each module is completed
 // app.use('/api/v1/users',     userRouter);
-// app.use('/api/v1/chat',      chatRouter);
 // app.use('/api/v1/journal',   journalRouter);
 // app.use('/api/v1/dashboard', dashboardRouter);
 

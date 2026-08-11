@@ -2,13 +2,29 @@
  * PURPOSE
  * -------
  * Public entry point for the emotion module.
- * All external imports must come through this file — never from internal paths.
  *
  * EXPORTS
  * -------
- * Router and any services that other modules are permitted to call.
+ * default        — Express router (mount at /api/v1/emotion)
+ * emotionService — service singleton for internal module-to-module calls
+ *
+ * Internal implementation details (clients, repositories, validators)
+ * are NOT exported and must never be imported from outside this module.
+ *
+ * USAGE — other modules calling emotion analysis directly:
+ *
+ *   import { emotionService } from '../emotion/index.js';
+ *   const result = await emotionService.analyze(text);
  *
  * NEVER
- * -------
- * Export internal implementation details (repositories, models directly).
+ * -----
+ * - Import fastapiClient from outside this module
+ * - Import emotionRepository from outside this module
+ *
+ * DEPENDS ON
+ * ----------
+ * emotion/routes/emotion.routes.js, emotion/services/emotion.service.js
  */
+
+export { default }        from './routes/emotion.routes.js';
+export { default as emotionService } from './services/emotion.service.js';
