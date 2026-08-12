@@ -1,21 +1,62 @@
 /**
  * PURPOSE
  * -------
- * HTTP routes for journal operations.
+ * Express router for all /api/v1/journal endpoints.
  *
  * RESPONSIBILITIES
- * -------
- * - POST /entries, GET /entries, GET /entries/:id, PATCH /entries/:id, DELETE /entries/:id
+ * ----------------
+ * - Mount auth middleware on every route
+ * - Mount Joi validation middleware
+ * - Delegate to the appropriate controller function
  *
  * NEVER
- * -------
- * - N/A
+ * -----
+ * - Contain business logic
+ * - Import repositories or models
  *
  * EXPORTS
  * -------
- * journalRouter
+ * journalRouter (default)
  *
  * DEPENDS ON
- * -------
- * express, journal.controller.js
+ * ----------
+ * express, auth.middleware, journal.controller, journal.validator
  */
+
+import { Router }       from 'express';
+import { authenticate } from '../../../shared/middleware/auth.middleware.js';
+import {
+  createEntry,
+  listEntries,
+  getEntry,
+  updateEntry,
+  deleteEntry,
+} from '../controllers/journal.controller.js';
+import {
+  validateCreateEntry,
+  validateUpdateEntry,
+  validateListQuery,
+  validateEntryId,
+} from '../validators/journal.validator.js';
+
+const journalRouter = Router();
+
+// All journal routes are protected — authentication required for every endpoint
+journalRouter.use(authenticate);
+
+// POST   /api/v1/journal        — create a new journal entry
+journalRouter.post('/', validateCreateEntry, createEntry);
+
+// GET    /api/v1/journal        — list own journal entries (paginated)
+journalRouter.get('/', validateListQuery, listEntries);
+
+// GET    /api/v1/journal/:id    — get a single owned journal entry
+journalRouter.get('/:id', validateEntryId, getEntry);
+
+// PATCH  /api/v1/journal/:id    — update an owned journal entry
+journalRouter.patch('/:id', validateEntryId, validateUpdateEntry, updateEntry);
+
+// DELETE /api/v1/journal/:id    — delete an owned journal entry
+journalRouter.delete('/:id', validateEntryId, deleteEntry);
+
+export default journalRouter;
