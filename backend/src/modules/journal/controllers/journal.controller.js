@@ -37,7 +37,8 @@ export const createEntry = asyncHandler(async (req, res) => {
 
 // ── GET /journal ─────────────────────────────────────────────────
 export const listEntries = asyncHandler(async (req, res) => {
-  const result = await journalService.listEntries(req.user.userId, req.query);
+  // Use req.validatedQuery (set by validateListQuery middleware) with fallback
+  const result = await journalService.listEntries(req.user.userId, req.validatedQuery || req.query);
   paginated(res, result.entries, result.pagination, 'Journal entries retrieved');
 });
 

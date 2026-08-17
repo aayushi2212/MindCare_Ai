@@ -1,28 +1,31 @@
 /**
  * PURPOSE
  * -------
- * Boot-time side-effect module for the analytics listeners.
- * Imported once in app.js for its side effects only — no exports.
+ * Public entry point for the Analytics module (Module 7).
  *
- * RESPONSIBILITIES
- * ----------------
- * - Subscribe to application events (user.registered, user.loggedIn, etc.)
- * - Delegate analytics work to analytics.service
+ * IMPORTANT: The existing analytics/index.js registers event-bus listeners
+ * as a side-effect module (imported in app.js with no exports). Module 7
+ * replaces that file entirely: the event-bus listeners are preserved below,
+ * and the router is now exported so app.js can mount it.
+ *
+ * EXPORTS
+ * -------
+ * analyticsRouter — Express router mounted at /api/v1/analytics
+ *
+ * SIDE EFFECTS
+ * ------------
+ * Registers analytics event-bus listeners (user.registered, user.loggedIn)
+ * exactly as the original index.js did.
  *
  * NEVER
  * -----
- * - Export anything (this module exists only for side effects)
- * - Perform analytics logic inline (delegate to analytics.service)
- *
- * DEPENDS ON
- * ----------
- * shared/events/event-bus, modules/analytics/services/analytics.service
+ * Export internal implementation details (repositories, models directly).
  */
 
 import eventBus from '../../shared/events/event-bus.js';
 import logger   from '../../shared/logger/logger.js';
 
-// Listen for events — analytics work happens here or in analytics.service
+// ── Preserve existing event-bus side effects ──────────────────────
 eventBus.on('user.registered', ({ userId }) => {
   logger.debug('Analytics: user.registered', { userId });
 });
@@ -30,3 +33,6 @@ eventBus.on('user.registered', ({ userId }) => {
 eventBus.on('user.loggedIn', ({ userId }) => {
   logger.debug('Analytics: user.loggedIn', { userId });
 });
+
+// ── Export the HTTP router ────────────────────────────────────────
+export { default } from './routes/analytics.routes.js';

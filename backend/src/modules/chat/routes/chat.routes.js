@@ -277,6 +277,13 @@ router.patch(
  *       404:
  *         description: Not found
  */
+
+router.post(
+  '/:conversationId/send',
+  validateConversationId,
+  controller.sendAndProcess
+);
+
 router.delete('/:conversationId', validateConversationId, controller.softDeleteConversation);
 
 /**

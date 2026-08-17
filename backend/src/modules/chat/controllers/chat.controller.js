@@ -39,7 +39,7 @@ export const createConversation = asyncHandler(async (req, res) => {
 
 // ── GET /chat ─────────────────────────────────────────────────────
 export const listConversations = asyncHandler(async (req, res) => {
-  const result = await chatService.listConversations(req.user.userId, req.query);
+  const result = await chatService.listConversations(req.user.userId, req.validatedQuery || req.query);
   paginated(res, result.conversations, result.pagination, 'Conversations retrieved');
 });
 
@@ -67,7 +67,7 @@ export const getMessages = asyncHandler(async (req, res) => {
   const result = await chatService.getMessages(
     req.user.userId,
     req.params.conversationId,
-    req.query
+    req.validatedQuery || req.query
   );
   paginated(res, result.messages, result.pagination, 'Messages retrieved');
 });
@@ -98,4 +98,19 @@ export const permanentDeleteConversation = asyncHandler(async (req, res) => {
     req.params.conversationId
   );
   noContent(res);
+});
+
+// ── POST /chat/:conversationId/send ────────────────────────────────
+// Unified pipeline: saves user msg, detects emotion, generates AI
+// response, saves AI msg, returns both. Frontend does NOT orchestrate.
+import messagePipelineService from '../services/message-pipeline.service.js';
+
+export const sendAndProcess = asyncHandler(async (req, res) => {
+  const { content } = req.body;
+  const result = await messagePipelineService.processMessage(
+    req.user.userId,
+    req.params.conversationId,
+    content
+  );
+  created(res, result, 'Message processed successfully');
 });

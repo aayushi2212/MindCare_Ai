@@ -113,7 +113,9 @@ const validateQuery = (schema) => (req, _res, next) => {
     return next(new ValidationError(message));
   }
 
-  req.query = value;
+  // FIX: req.query is read-only in Node ≥ 20 + router package.
+  // Write to req.validatedQuery so controllers use validated/coerced values.
+  req.validatedQuery = value;
   next();
 };
 

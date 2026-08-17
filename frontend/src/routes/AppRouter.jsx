@@ -1,59 +1,40 @@
-/**
- * PURPOSE
- * -------
- * Central route configuration for the MindCare AI frontend.
- * Defines public routes (login, register) and protected routes (chat, dashboard, journal, profile).
- *
- * RESPONSIBILITIES
- * ----------------
- * - Declare all application routes in one place
- * - Wrap private routes inside <ProtectedRoute /> so unauthenticated
- *   users are redirected to /login
- *
- * NEVER
- * -----
- * - Contain UI or business logic
- * - Import from context directly (leave that to page components)
- *
- * DEPENDS ON
- * ----------
- * react-router-dom, components/common/ProtectedRoute, page components
- */
-
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-
 import ProtectedRoute from '../components/common/ProtectedRoute';
+import Loading from '../components/common/Loading.jsx';
 
-// Pages
+// Eager load auth pages
 import Login    from '../pages/Login/Login';
 import Register from '../pages/Register/Register';
-import Profile  from '../pages/Profile/Profile';
 
-// Placeholder components for modules not yet implemented
-const ComingSoon = ({ name }) => (
-  <main style={{ padding: '4rem 2rem', textAlign: 'center' }}>
-    <h2 style={{ color: 'var(--color-text-muted)' }}>{name} — coming soon</h2>
-  </main>
+// Lazy load authenticated pages
+const Chat      = lazy(() => import('../pages/Chat/Chat.jsx'));
+const Journal   = lazy(() => import('../pages/Journal/Journal.jsx'));
+const Dashboard = lazy(() => import('../pages/Dashboard/Dashboard.jsx'));
+const Profile   = lazy(() => import('../pages/Profile/Profile.jsx'));
+
+const PageLoader = () => (
+  <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <Loading text="Loading…" />
+  </div>
 );
 
 export default function AppRouter() {
   return (
     <Routes>
-      {/* ── Public routes ────────────────────────────────────── */}
+      {/* ── Public routes ─── */}
       <Route path="/login"    element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      {/* ── Protected routes ─────────────────────────────────── */}
+      {/* ── Protected routes ─── */}
       <Route element={<ProtectedRoute />}>
-        <Route path="/chat"      element={<ComingSoon name="Chat" />} />
-        <Route path="/dashboard" element={<ComingSoon name="Dashboard" />} />
-        <Route path="/journal"   element={<ComingSoon name="Journal" />} />
-        <Route path="/profile"   element={<Profile />} />
-        <Route path="/settings"  element={<ComingSoon name="Settings" />} />
+        <Route path="/chat"      element={<Suspense fallback={<PageLoader />}><Chat /></Suspense>} />
+        <Route path="/journal"   element={<Suspense fallback={<PageLoader />}><Journal /></Suspense>} />
+        <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />
+        <Route path="/profile"   element={<Suspense fallback={<PageLoader />}><Profile /></Suspense>} />
       </Route>
 
-      {/* ── Redirects ─────────────────────────────────────────── */}
+      {/* ── Redirects ─── */}
       <Route path="/"  element={<Navigate to="/chat" replace />} />
       <Route path="*"  element={<Navigate to="/login" replace />} />
     </Routes>
