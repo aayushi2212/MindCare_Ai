@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import ChartJS from 'chart.js/auto';
+
 import analyticsService from '../../services/analytics.service.js';
 import Loading from '../../components/common/Loading.jsx';
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
@@ -14,91 +16,78 @@ const EMOTION_EMOJI = {
   happy: '😊', sad: '😢', angry: '😠', fear: '😨', anxiety: '😰', neutral: '😐', surprise: '😲',
 };
 
-// V1 emotion order for consistent display
 const EMOTION_ORDER = ['happy', 'sad', 'angry', 'fear', 'anxiety', 'neutral', 'surprise'];
 
-/* ── Canvas bar chart (emotion frequency) ───────────────────────── */
-// Takes { emotion → count } distribution object
+/* ── Chart.js bar chart (emotion frequency) ─────────────────────── */
 function EmotionBarChart({ distribution }) {
-  const ref = useRef(null);
+  const canvasRef = useRef(null);
+  const chartRef  = useRef(null);
 
   const entries = EMOTION_ORDER
     .map((e) => ({ emotion: e, count: distribution?.[e] ?? 0 }))
     .filter((e) => e.count > 0);
 
   useEffect(() => {
-    const canvas = ref.current;
-    if (!canvas || !entries.length) return;
+    if (!canvasRef.current || !entries.length) return;
 
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width  = canvas.offsetWidth  * dpr;
-    canvas.height = canvas.offsetHeight * dpr;
-    const ctx = canvas.getContext('2d');
-    ctx.scale(dpr, dpr);
-    const w = canvas.offsetWidth;
-    const h = canvas.offsetHeight;
-
-    const PAD = { top: 24, right: 16, bottom: 44, left: 36 };
-    const innerW = w - PAD.left - PAD.right;
-    const innerH = h - PAD.top  - PAD.bottom;
-    const max    = Math.max(...entries.map((e) => e.count), 1);
-    const barW   = (innerW / entries.length) * 0.65;
-    const gap    = innerW / entries.length;
-
-    ctx.clearRect(0, 0, w, h);
-
-    // Grid
-    ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
-    for (let i = 0; i <= 4; i++) {
-      const y = PAD.top + (innerH / 4) * i;
-      ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(w - PAD.right, y); ctx.stroke();
-      ctx.fillStyle = '#94a3b8'; ctx.font = '10px Inter,sans-serif'; ctx.textAlign = 'right';
-      ctx.fillText(Math.round(max - (max / 4) * i), PAD.left - 4, y + 4);
+    if (chartRef.current) {
+      chartRef.current.destroy();
+      chartRef.current = null;
     }
 
-    entries.forEach(({ emotion, count }, i) => {
-      const x    = PAD.left + gap * i + (gap - barW) / 2;
-      const barH = (count / max) * innerH;
-      const y    = PAD.top + innerH - barH;
-      const r    = 5;
-      const color = EMOTION_COLORS[emotion] || '#6C63FF';
+    const labels  = entries.map((e) => `${EMOTION_EMOJI[e.emotion] || ''} ${e.emotion}`);
+    const data    = entries.map((e) => e.count);
+    const colors  = entries.map((e) => EMOTION_COLORS[e.emotion] || '#6C63FF');
 
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.lineTo(x + barW - r, y);
-      ctx.quadraticCurveTo(x + barW, y, x + barW, y + r);
-      ctx.lineTo(x + barW, y + barH);
-      ctx.lineTo(x, y + barH);
-      ctx.lineTo(x, y + r);
-      ctx.quadraticCurveTo(x, y, x + r, y);
-      ctx.closePath();
-      ctx.fillStyle = color; ctx.fill();
-
-      ctx.fillStyle = '#475569'; ctx.font = 'bold 11px Inter,sans-serif'; ctx.textAlign = 'center';
-      if (count > 0) ctx.fillText(count, x + barW / 2, y - 5);
-
-      ctx.fillStyle = '#64748b'; ctx.font = '11px Inter,sans-serif';
-      // Emoji + truncated label
-      const lbl = `${EMOTION_EMOJI[emotion] || ''} ${emotion}`;
-      ctx.fillText(lbl.length > 9 ? lbl.slice(0, 8) + '…' : lbl, x + barW / 2, PAD.top + innerH + 18);
+    chartRef.current = new ChartJS(canvasRef.current, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Frequency',
+          data,
+          backgroundColor: colors.map((c) => c + 'cc'),
+          borderColor: colors,
+          borderWidth: 2,
+          borderRadius: 6,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (ctx) => ` ${ctx.parsed.y} entries` } },
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 11 } } },
+          y: { beginAtZero: true, grid: { color: '#e2e8f0' }, ticks: { color: '#64748b', font: { size: 11 }, stepSize: 1, precision: 0 } },
+        },
+      },
     });
-  }, [entries]);
+
+    return () => {
+      if (chartRef.current) { chartRef.current.destroy(); chartRef.current = null; }
+    };
+  }, [JSON.stringify(entries)]);
 
   if (!entries.length) {
     return <EmptyState icon="📊" title="No data yet" description="Record journal entries to see emotion frequency." />;
   }
-  return <canvas ref={ref} style={{ width: '100%', height: 220, display: 'block' }} />;
+  return (
+    <div style={{ position: 'relative', height: 220 }}>
+      <canvas ref={canvasRef} />
+    </div>
+  );
 }
 
 /* ── Categorical mood timeline ───────────────────────────────────── */
-// moodTrend is [{ date: 'YYYY-MM-DD', emotion: string }]
-// We plot emotion as colour-coded dots on a timeline
 function MoodTimeline({ points }) {
   if (!points?.length) {
     return <EmptyState icon="📈" title="No trend data yet" description="Journal more entries to see your mood trend." />;
   }
 
-  const visible = points.slice(-30); // show latest 30
+  const visible = points.slice(-30);
 
   return (
     <div style={{ overflowX: 'auto', paddingBottom: '0.5rem' }}>
@@ -120,7 +109,6 @@ function MoodTimeline({ points }) {
         })}
       </div>
 
-      {/* Legend */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1.5rem' }}>
         {EMOTION_ORDER.filter((e) => points.some((p) => p.emotion === e)).map((e) => (
           <span key={e} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-full)', background: (EMOTION_COLORS[e] || '#94a3b8') + '18', color: EMOTION_COLORS[e] || '#94a3b8', border: `1px solid ${(EMOTION_COLORS[e] || '#94a3b8')}33` }}>
@@ -143,7 +131,7 @@ function StatCard({ label, value, sub, accent }) {
   );
 }
 
-/* ── Emotion frequency pill list from distribution map ──────────── */
+/* ── Emotion frequency pill list ────────────────────────────────── */
 function EmotionFreqList({ frequencyMap }) {
   const entries = EMOTION_ORDER
     .map((e) => ({ emotion: e, count: frequencyMap?.[e] ?? 0 }))
@@ -196,23 +184,11 @@ export default function Dashboard() {
         analyticsService.getJournalHistory({ page: 1, limit: 5 }),
       ]);
 
-      // GET /analytics/overview → success() → { data: { totalEntries, mostFrequentEmotion,
-      //   emotionDistribution, moodTrend, weeklySummary, monthlySummary } }
       setOverview(ov.data.data);
-
-      // GET /analytics/mood-trend → success() → { data: { moodTrend: [{ date, emotion }] } }
       setMoodTrend(mt.data.data?.moodTrend || []);
-
-      // GET /analytics/emotions → success() → { data: { emotionDistribution: {}, mostFrequentEmotion } }
       setEmotions(em.data.data?.emotionDistribution || {});
-
-      // GET /analytics/weekly → success() → { data: { period, entryCount, mostFrequentEmotion, emotionFrequency, startDate, endDate } }
       setWeekly(wk.data.data);
-
-      // GET /analytics/monthly → success() → { data: { period, entryCount, mostFrequentEmotion, emotionFrequency, startDate, endDate, month } }
       setMonthly(mo.data.data);
-
-      // GET /analytics/journal-history → paginated() → { data: [], pagination: {} }
       setHistory(Array.isArray(hist.data.data) ? hist.data.data : []);
 
     } catch {
@@ -243,7 +219,6 @@ export default function Dashboard() {
 
         {!loading && !error && !isEmpty && overview && (
           <>
-            {/* ── Overview ── */}
             <Section title="Overview" style={{ marginBottom: '1.25rem' }}>
               <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                 <StatCard label="Total Entries" value={overview.totalEntries} />
@@ -254,18 +229,15 @@ export default function Dashboard() {
                     : '—'}
                   accent="var(--color-text)"
                 />
-                {/* Use actual backend field names: weeklySummary.entryCount and monthlySummary.entryCount */}
                 <StatCard label="This Week"  value={overview.weeklySummary?.entryCount  ?? '—'} sub="entries" />
                 <StatCard label="This Month" value={overview.monthlySummary?.entryCount ?? '—'} sub="entries" />
               </div>
             </Section>
 
-            {/* ── Mood Trend (categorical, not numeric) ── */}
             <Section title="Mood Trend" style={{ marginBottom: '1.25rem' }}>
               <MoodTimeline points={moodTrend} />
             </Section>
 
-            {/* ── Emotion Frequency + Weekly ── */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
               <Section title="Emotion Frequency">
                 <EmotionBarChart distribution={emotions} />
@@ -274,7 +246,6 @@ export default function Dashboard() {
               {weekly && (
                 <Section title="This Week">
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                    {/* Backend field: entryCount (not count) */}
                     <StatCard label="Journal Entries" value={weekly.entryCount ?? '—'} />
                     {weekly.mostFrequentEmotion && (
                       <div style={{ background: 'var(--color-surface-2)', borderRadius: 'var(--radius-md)', padding: '0.75rem 1rem' }}>
@@ -284,18 +255,15 @@ export default function Dashboard() {
                         </p>
                       </div>
                     )}
-                    {/* Backend field: emotionFrequency (object map, not array) */}
                     {weekly.emotionFrequency && <EmotionFreqList frequencyMap={weekly.emotionFrequency} />}
                   </div>
                 </Section>
               )}
             </div>
 
-            {/* ── Monthly Summary ── */}
             {monthly && (
               <Section title="Monthly Summary" style={{ marginBottom: '1.25rem' }}>
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                  {/* Backend field: entryCount (not count or totalEntries) */}
                   <StatCard label="Entries This Month" value={monthly.entryCount ?? '—'} />
                   {monthly.mostFrequentEmotion && (
                     <StatCard
@@ -312,7 +280,6 @@ export default function Dashboard() {
               </Section>
             )}
 
-            {/* ── Journal History ── */}
             <Section title="Recent Journal Entries">
               {history.length === 0 ? (
                 <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>No entries found.</p>

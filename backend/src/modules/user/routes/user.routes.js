@@ -1,22 +1,27 @@
 /**
  * PURPOSE
  * -------
- * Defines HTTP routes for user profile operations.
+ * HTTP routes for user profile operations.
  *
- * RESPONSIBILITIES
- * -------
- * - Map GET /me, PATCH /me, DELETE /me to controller methods
- * - Apply auth middleware
- *
- * NEVER
- * -------
- * - Contain logic
- *
- * EXPORTS
- * -------
- * userRouter — Express Router
+ * ROUTES
+ * ------
+ * GET   /users/me   — get current user profile
+ * PATCH /users/me   — update current user profile (fullName, bio)
  *
  * DEPENDS ON
- * -------
- * express, user.controller.js, shared/middleware/auth.middleware.js
+ * ----------
+ * express, user.controller, shared/middleware/auth.middleware
  */
+
+import { Router }       from 'express';
+import * as controller  from '../controllers/user.controller.js';
+import { authenticate } from '../../../shared/middleware/auth.middleware.js';
+
+const router = Router();
+
+router.use(authenticate);
+
+router.get('/me',   controller.getProfile);
+router.patch('/me', controller.updateProfile);
+
+export default router;

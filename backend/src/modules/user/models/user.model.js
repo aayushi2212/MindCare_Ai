@@ -1,21 +1,11 @@
 /**
  * PURPOSE
  * -------
- * Re-exports or extends the User schema with profile-specific fields.
- *
- * RESPONSIBILITIES
- * -------
- * - Add profile fields: displayName, avatar, bio, preferences
- *
- * NEVER
- * -------
- * - Duplicate auth user model
- *
- * EXPORTS
- * -------
- * User — Mongoose model
+ * Re-exports the auth User model — single source of truth for the User collection.
+ * The user module shares the same underlying MongoDB collection as the auth module.
  *
  * DEPENDS ON
- * -------
- * mongoose
+ * ----------
+ * auth/models/user.model
  */
+export { default } from '../../auth/models/user.model.js';

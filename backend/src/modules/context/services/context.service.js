@@ -204,6 +204,9 @@ class ContextService {
     const counts = {};
 
     for (const msg of rawMessages) {
+      // Only count emotion from USER messages — the emotion classification
+      // describes the user's emotional state, not the AI response.
+      if (msg.sender !== 'user') continue;
       const emotion = msg?.metadata?.emotion;
       if (emotion && typeof emotion === 'string') {
         counts[emotion] = (counts[emotion] ?? 0) + 1;

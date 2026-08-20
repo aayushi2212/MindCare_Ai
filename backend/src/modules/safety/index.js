@@ -6,9 +6,11 @@
  *
  * EXPORTS
  * -------
- * Router and any services that other modules are permitted to call.
- *
- * NEVER
- * -------
- * Export internal implementation details (repositories, models directly).
+ * safetyService — singleton for crisis/safety checking
+ * SAFETY_STATUS — status constants for other modules
  */
+
+import safetyService, { SAFETY_STATUS } from './services/safety.service.js';
+
+export { safetyService, SAFETY_STATUS };
+export default safetyService;

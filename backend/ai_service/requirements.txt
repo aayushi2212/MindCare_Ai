@@ -1,0 +1,20 @@
+# MindCare AI — Emotion Detection Service dependencies
+#
+# Install:
+#   pip install -r requirements.txt
+#
+# Python >= 3.9 required
+
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+
+# HuggingFace Transformers + PyTorch (CPU build)
+# For GPU support, replace torch with the CUDA variant:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu121
+transformers==4.47.1
+torch==2.5.1
+
+# Required by transformers for tokenisation
+sentencepiece==0.2.0
+protobuf==5.29.3

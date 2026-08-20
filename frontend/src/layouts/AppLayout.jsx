@@ -7,6 +7,7 @@ const NAV = [
   { to: '/journal',   label: 'Journal',   icon: '📓' },
   { to: '/dashboard', label: 'Dashboard', icon: '📊' },
   { to: '/profile',   label: 'Profile',   icon: '👤' },
+  { to: '/settings',  label: 'Settings',  icon: '⚙️'  },
 ];
 
 export default function AppLayout({ children }) {

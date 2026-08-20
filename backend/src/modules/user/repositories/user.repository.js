@@ -1,7 +1,7 @@
 /**
  * PURPOSE
  * -------
- * MongoDB query layer for the User collection.
+ * MongoDB query layer for user profile operations.
  *
  * RESPONSIBILITIES
  * -------
@@ -9,13 +9,31 @@
  *
  * NEVER
  * -------
- * - Contain logic
+ * - Contain business logic
  *
  * EXPORTS
  * -------
- * UserRepository class
+ * userRepository singleton
  *
  * DEPENDS ON
  * -------
- * User model
+ * User model (auth)
  */
+
+import User from '../models/user.model.js';
+
+class UserRepository {
+  findById(id) {
+    return User.findById(id);
+  }
+
+  updateById(id, updates) {
+    return User.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
+  }
+
+  softDeleteById(id) {
+    return User.findByIdAndUpdate(id, { accountStatus: 'deleted' }, { new: true });
+  }
+}
+
+export default new UserRepository();

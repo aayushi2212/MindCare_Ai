@@ -51,7 +51,7 @@ export const getEntry = asyncHandler(async (req, res) => {
 // ── PATCH /journal/:id ───────────────────────────────────────────
 export const updateEntry = asyncHandler(async (req, res) => {
   const entry = await journalService.updateEntry(req.user.userId, req.params.id, req.body);
-  success(res, { entry }, 'Journal entry updated successfully');
+  success(res, { entry }, 200, 'Journal entry updated successfully');
 });
 
 // ── DELETE /journal/:id ──────────────────────────────────────────

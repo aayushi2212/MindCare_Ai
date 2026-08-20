@@ -49,6 +49,9 @@ import journalRouter   from './modules/journal/index.js';
 // ── Analytics (Module 7): side-effect listeners + HTTP router ─────
 import analyticsRouter from './modules/analytics/index.js';
 
+// ── User profile (Module 1 extension) ─────────────────────────────
+import userRouter from './modules/user/index.js';
+
 const app = express();
 
 /* -------------------------------------------------------------------------- */
@@ -112,10 +115,7 @@ app.use('/api/v1/response',   responseRouter);
 app.use('/api/v1/emotion',    emotionRouter);
 app.use('/api/v1/journal',    journalRouter);
 app.use('/api/v1/analytics',  analyticsRouter);
-
-// TODO: mount these as each module is completed
-// app.use('/api/v1/users',     userRouter);
-// app.use('/api/v1/dashboard', dashboardRouter);
+app.use('/api/v1/users',      userRouter);
 
 /* -------------------------------------------------------------------------- */
 /*                              404 Not Found                                 */

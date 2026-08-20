@@ -12,6 +12,7 @@ const Chat      = lazy(() => import('../pages/Chat/Chat.jsx'));
 const Journal   = lazy(() => import('../pages/Journal/Journal.jsx'));
 const Dashboard = lazy(() => import('../pages/Dashboard/Dashboard.jsx'));
 const Profile   = lazy(() => import('../pages/Profile/Profile.jsx'));
+const Settings  = lazy(() => import('../pages/Settings/Settings.jsx'));
 
 const PageLoader = () => (
   <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -32,6 +33,7 @@ export default function AppRouter() {
         <Route path="/journal"   element={<Suspense fallback={<PageLoader />}><Journal /></Suspense>} />
         <Route path="/dashboard" element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />
         <Route path="/profile"   element={<Suspense fallback={<PageLoader />}><Profile /></Suspense>} />
+        <Route path="/settings"  element={<Suspense fallback={<PageLoader />}><Settings /></Suspense>} />
       </Route>
 
       {/* ── Redirects ─── */}

@@ -1,14 +1,13 @@
 /**
- * PURPOSE
- * -------
- * Public entry point for the conversation-engine module.
- * All external imports must come through this file — never from internal paths.
+ * ARCHITECTURE NOTE
+ * -----------------
+ * The conversation-engine module has been consolidated into:
  *
- * EXPORTS
- * -------
- * Router and any services that other modules are permitted to call.
+ *   chat/services/message-pipeline.service.js
  *
- * NEVER
- * -------
- * Export internal implementation details (repositories, models directly).
+ * That file is the single authoritative orchestrator for the full
+ * user-message → AI-response pipeline (Safety → Emotion → Context → Response).
+ *
+ * This directory is retained for structural reference only.
+ * Do NOT add new implementation files here.
  */

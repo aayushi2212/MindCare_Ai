@@ -79,7 +79,7 @@ export const renameConversation = asyncHandler(async (req, res) => {
     req.params.conversationId,
     req.body.title
   );
-  success(res, { conversation }, 'Conversation renamed successfully');
+  success(res, { conversation }, 200, 'Conversation renamed successfully');
 });
 
 // ── DELETE /chat/:conversationId ───────────────────────────────────
