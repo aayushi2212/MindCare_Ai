@@ -52,6 +52,9 @@ import analyticsRouter from './modules/analytics/index.js';
 // ── User profile (Module 1 extension) ─────────────────────────────
 import userRouter from './modules/user/index.js';
 
+// ── Safety (Module 8) — protected audit endpoint ──────────────────
+import { safetyRouter } from './modules/safety/index.js';
+
 const app = express();
 
 /* -------------------------------------------------------------------------- */
@@ -116,6 +119,7 @@ app.use('/api/v1/emotion',    emotionRouter);
 app.use('/api/v1/journal',    journalRouter);
 app.use('/api/v1/analytics',  analyticsRouter);
 app.use('/api/v1/users',      userRouter);
+app.use('/api/v1/safety',     safetyRouter);
 
 /* -------------------------------------------------------------------------- */
 /*                              404 Not Found                                 */

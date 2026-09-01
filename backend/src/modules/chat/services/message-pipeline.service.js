@@ -9,15 +9,15 @@
  * --------
  * 1. Validate conversation ownership
  * 2. Safety check (FIRST gate — before any AI processing)
- *    ↓ HIGH RISK → persist user + crisis response → return (skip AI pipeline)
+ *    ↓ HIGH RISK → persist user msg + crisis response → write audit → return (skip AI pipeline)
  *    ↓ SAFE     → continue
  * 3. Emotion detection (Module 3)
  * 4. Context retrieval via ContextService (Module 4)
  *    — runs on EXISTING messages only (current message not yet saved)
  * 5. Response generation (Module 5) with emotion + context
- * 6. Persist USER message WITH emotion metadata (emotion describes the USER's message)
- * 7. Persist AI message (no emotion metadata — emotion belongs to the user message)
- * 8. Return { userMessage, aiMessage, emotion }
+ * 6. Persist USER message WITH emotion metadata
+ * 7. Persist AI message
+ * 8. Return { userMessage, aiMessage, emotion, isCrisis, resources }
  *
  * WHY EMOTION/CONTEXT BEFORE PERSIST
  * -----------------------------------
@@ -32,19 +32,22 @@
  * - Implement response strategies (ResponseService's job)
  * - Implement emotion detection (EmotionService's job)
  * - Build context objects (ContextService's job)
+ * - Make safety decisions (SafetyService's job)
  *
  * DEPENDS ON
  * ----------
  * chat.service, chat.repository, emotion.service,
- * context.service, response.service, safety.service
+ * context.service, response.service, safety.service, crisis-audit.service
  */
 
-import chatService     from './chat.service.js';
-import chatRepository  from '../repositories/chat.repository.js';
-import emotionService  from '../../emotion/services/emotion.service.js';
-import responseService from '../../response/services/response.service.js';
-import contextService  from '../../context/services/context.service.js';
-import safetyService, { SAFETY_STATUS } from '../../safety/services/safety.service.js';
+import chatService        from './chat.service.js';
+import chatRepository     from '../repositories/chat.repository.js';
+import emotionService     from '../../emotion/services/emotion.service.js';
+import responseService    from '../../response/services/response.service.js';
+import contextService     from '../../context/services/context.service.js';
+import safetyService      from '../../safety/services/safety.service.js';
+import crisisAuditService from '../../safety/services/crisis-audit.service.js';
+import { SAFETY_STATUS, SAFETY_RESOURCES } from '../../safety/constants/safety.constants.js';
 import { ConversationNotFoundError, ConversationAccessDeniedError } from '../errors/chat.errors.js';
 import logger from '../../../shared/logger/logger.js';
 
@@ -55,7 +58,7 @@ class MessagePipelineService {
    * @param {string} userId
    * @param {string} conversationId
    * @param {string} userMessageText
-   * @returns {{ userMessage, aiMessage, emotion }}
+   * @returns {{ userMessage, aiMessage, emotion, isCrisis, resources }}
    */
   async processMessage(userId, conversationId, userMessageText) {
 
@@ -69,20 +72,44 @@ class MessagePipelineService {
     }
 
     // ── 2. SAFETY GATE (FIRST — before any AI processing) ─────────
+    // Deterministic pattern matching; no AI involved.
+    // If SafetyService throws unexpectedly, we fail CLOSED — the error
+    // propagates and the normal pipeline does NOT run.
     const safetyResult = safetyService.checkMessage(userMessageText);
 
     if (safetyResult.isHighRisk) {
-      // Persist the user message so history is intact
+      // Persist the user message so conversation history is intact
       const userMessage = await chatService.saveMessage(userId, conversationId, {
         sender:  'user',
         content: userMessageText,
       });
 
-      // Persist the predefined safe crisis response — no AI involved
+      // Persist the predefined safe crisis response — no AI generation
       const aiMessage = await chatService.saveMessage(userId, conversationId, {
         sender:   'ai',
         content:  safetyResult.crisisResponse,
-        metadata: { strategy: 'crisis_response', safety: { status: SAFETY_STATUS.HIGH_RISK } },
+        metadata: {
+          strategy: 'crisis_response',
+          isCrisis: true,
+          safety: {
+            status:    SAFETY_STATUS.HIGH_RISK,
+            riskLevel: safetyResult.riskLevel,
+            category:  safetyResult.category,
+            action:    safetyResult.action,
+          },
+        },
+      });
+
+      // Write audit record (fire-and-forget — audit failure must not break response)
+      // Blueprint §12: log event WITHOUT storing raw message content
+      crisisAuditService.logEvent({
+        userId,
+        conversationId,
+        riskLevel: safetyResult.riskLevel,
+        category:  safetyResult.category,
+        action:    safetyResult.action,
+      }).catch(() => {
+        // Already swallowed inside crisisAuditService.logEvent — belt-and-suspenders
       });
 
       logger.info('Pipeline: crisis response delivered', { conversationId });
@@ -90,13 +117,13 @@ class MessagePipelineService {
       return {
         userMessage,
         aiMessage,
-        emotion: { emotion: 'neutral', confidence: 0.0 },
+        emotion:   { emotion: 'neutral', confidence: 0.0 },
+        isCrisis:  true,
+        resources: SAFETY_RESOURCES,
       };
     }
 
     // ── 3. Emotion detection (best-effort; fall back to neutral) ───
-    // NOTE: Run BEFORE persisting the user message so context only sees
-    // genuine prior history when we call buildContext below.
     let emotionResult = { emotion: 'neutral', confidence: 0.5 };
     try {
       emotionResult = await emotionService.analyze(userMessageText);
@@ -107,7 +134,6 @@ class MessagePipelineService {
     }
 
     // ── 4. Context retrieval (Module 4) — BEFORE persisting user msg ──
-    // This ensures buildContext operates on PREVIOUS messages only.
     let contextObject = { recentMessages: [], messageCount: 0, repeatedEmotions: [] };
     try {
       contextObject = await contextService.buildContext(userId, conversationId, {
@@ -152,30 +178,23 @@ class MessagePipelineService {
     }
 
     // ── 7. Persist USER message WITH emotion metadata ──────────────
-    // Saved AFTER context retrieval so buildContext never sees this
-    // message as "prior conversation history".
-    // IMPORTANT: metadata.emotion stored on the USER message — emotion
-    // describes the user's emotional state, not the AI response.
-    // ContextService._extractRepeatedEmotions() reads metadata.emotion
-    // to compute repeated emotion patterns from USER messages.
     const userMessage = await chatService.saveMessage(userId, conversationId, {
       sender:  'user',
       content: userMessageText,
       metadata: {
-        emotion:    emotionResult.emotion,          // string label e.g. "sad"
+        emotion:    emotionResult.emotion,
         confidence: emotionResult.confidence ?? 0.5,
         secondaryEmotion: emotionResult.secondaryEmotion ?? null,
       },
     });
 
-    // ── 8. Persist AI message (no emotion metadata) ─────────────────
-    // The AI message is the generated response; it does not carry
-    // the user's emotional classification.
+    // ── 8. Persist AI message ───────────────────────────────────────
     const aiMessage = await chatService.saveMessage(userId, conversationId, {
       sender:   'ai',
       content:  aiContent,
       metadata: {
         strategy: responseStrategy,
+        isCrisis: false,
         safety:   { status: safetyResult.status },
       },
     });
@@ -187,7 +206,13 @@ class MessagePipelineService {
       contextMessages: contextObject.recentMessages.length,
     });
 
-    return { userMessage, aiMessage, emotion: emotionResult };
+    return {
+      userMessage,
+      aiMessage,
+      emotion:   emotionResult,
+      isCrisis:  false,
+      resources: null,
+    };
   }
 }
 

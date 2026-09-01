@@ -127,12 +127,19 @@ describe('MessagePipelineService — safety gate', () => {
     expect(contextService.buildContext).not.toHaveBeenCalled();
     expect(responseService.generateResponse).not.toHaveBeenCalled();
 
+    // AI pipeline must NOT have been called
+    expect(emotionService.analyze).not.toHaveBeenCalled();
+    expect(contextService.buildContext).not.toHaveBeenCalled();
+    expect(responseService.generateResponse).not.toHaveBeenCalled();
+
     // Both messages were persisted
     expect(chatService.saveMessage).toHaveBeenCalledTimes(2);
 
-    // Result contains both messages
+    // Result contains both messages and crisis flags
     expect(result.userMessage).toBeDefined();
     expect(result.aiMessage).toBeDefined();
+    expect(result.isCrisis).toBe(true);
+    expect(result.resources).not.toBeNull();
   });
 
   it('correctly identifies "kill myself" as high-risk', async () => {
@@ -237,6 +244,8 @@ describe('MessagePipelineService — normal pipeline', () => {
     expect(result.userMessage).toBeDefined();
     expect(result.aiMessage).toBeDefined();
     expect(result.emotion).toBeDefined();
+    expect(result.isCrisis).toBe(false);
+    expect(result.resources).toBeNull();
   });
 
   it('falls back gracefully if emotion detection fails', async () => {

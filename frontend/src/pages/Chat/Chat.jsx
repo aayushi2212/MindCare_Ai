@@ -9,13 +9,15 @@ import AppLayout from '../../layouts/AppLayout.jsx';
    ARCHITECTURE NOTE
    The frontend does NOT orchestrate the AI pipeline.
    Sending a message calls POST /chat/:id/send — the backend handles:
-     1. Save user message
+     1. Safety check (Module 8) — FIRST gate
+        → HIGH RISK: returns crisis response + resources (skips AI)
+        → SAFE: continues
      2. Detect emotion (Module 3)
      3. Retrieve context (Module 4)
      4. Generate AI response (Module 5)
-     5. Save AI message
-     6. Return { userMessage, aiMessage, emotion }
-   The frontend just displays the result.
+     5. Save messages
+     6. Return { userMessage, aiMessage, emotion, isCrisis, resources }
+   The frontend detects isCrisis and renders a dedicated safety UI.
 ───────────────────────────────────────────────────────────────── */
 
 const EMOTION_COLORS = {
@@ -26,8 +28,8 @@ const EMOTION_EMOJI = {
   happy: '😊', sad: '😢', angry: '😠', fear: '😨', anxiety: '😰', neutral: '😐', surprise: '😲',
 };
 
+// ── Emotion badge ──────────────────────────────────────────────────
 function EmotionBadge({ emotion }) {
-  // emotion is a string label from backend e.g. "anxiety"
   if (!emotion) return null;
   const color = EMOTION_COLORS[emotion] || '#94a3b8';
   return (
@@ -43,9 +45,121 @@ function EmotionBadge({ emotion }) {
   );
 }
 
+// ── Crisis resources card ──────────────────────────────────────────
+// Calm, supportive layout. No alarming animations or red flashing.
+function CrisisResources({ resources }) {
+  if (!resources) return null;
+
+  return (
+    <div style={{
+      marginTop: '0.75rem',
+      padding: '0.75rem 1rem',
+      borderRadius: 'var(--radius-md)',
+      background: '#f0f7ff',
+      border: '1px solid #bfdbfe',
+    }}>
+      <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#1e40af', marginBottom: '0.5rem' }}>
+        📋 Support Resources
+      </p>
+
+      {resources.immediate && resources.immediate.length > 0 && (
+        <div style={{ marginBottom: '0.5rem' }}>
+          <p style={{ fontSize: '0.7rem', fontWeight: 600, color: '#374151', marginBottom: '0.25rem' }}>
+            Immediate support
+          </p>
+          {resources.immediate.map((item, i) => (
+            <div key={i} style={{ fontSize: '0.75rem', color: '#374151', marginBottom: '0.2rem' }}>
+              <strong>{item.name}</strong>
+              {item.number && <span style={{ color: '#1d4ed8' }}> — {item.number}</span>}
+              {item.description && <span style={{ color: '#6b7280' }}> · {item.description}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {resources.professional && resources.professional.length > 0 && (
+        <div style={{ marginBottom: '0.5rem' }}>
+          <p style={{ fontSize: '0.7rem', fontWeight: 600, color: '#374151', marginBottom: '0.25rem' }}>
+            Professional support
+          </p>
+          {resources.professional.map((item, i) => (
+            <div key={i} style={{ fontSize: '0.75rem', color: '#374151', marginBottom: '0.2rem' }}>
+              <strong>{item.name}</strong>
+              {item.number && <span style={{ color: '#1d4ed8' }}> — {item.number}</span>}
+              {item.description && <span style={{ color: '#6b7280' }}> · {item.description}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {resources.international && resources.international.length > 0 && (
+        <div style={{ marginBottom: '0.5rem' }}>
+          {resources.international.map((item, i) => (
+            <div key={i} style={{ fontSize: '0.75rem', color: '#374151' }}>
+              {item.url
+                ? <><a href={item.url} target="_blank" rel="noopener noreferrer" style={{ color: '#1d4ed8' }}>{item.name}</a><span style={{ color: '#6b7280' }}> — {item.description}</span></>
+                : <><strong>{item.name}</strong><span style={{ color: '#6b7280' }}> — {item.description}</span></>
+              }
+            </div>
+          ))}
+        </div>
+      )}
+
+      {resources.trusted_person && (
+        <p style={{ fontSize: '0.75rem', color: '#374151', fontStyle: 'italic', marginTop: '0.25rem' }}>
+          💙 {resources.trusted_person}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ── Crisis message bubble ──────────────────────────────────────────
+// Distinguished from a normal AI bubble: calm blue-tinted background,
+// safety notice header, resource list below.
+function CrisisMessageBubble({ msg }) {
+  const resources = msg.metadata?.resources || null;
+
+  return (
+    <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '1rem', animation: 'fadeIn 0.2s ease' }}>
+      <div style={{ maxWidth: '80%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.3rem', paddingLeft: '0.25rem' }}>
+          <span style={{ fontSize: '1.1rem' }}>💙</span>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#1e40af' }}>MindCare — Safety Notice</span>
+        </div>
+        <div style={{
+          padding: '0.85rem 1rem',
+          borderRadius: '18px 18px 18px 4px',
+          background: '#eff6ff',
+          color: '#1e3a5f',
+          boxShadow: 'var(--shadow-sm)',
+          border: '1px solid #bfdbfe',
+          fontSize: '0.9rem', lineHeight: 1.6, whiteSpace: 'pre-wrap',
+        }}>
+          {msg.content}
+        </div>
+        <CrisisResources resources={resources} />
+        <div style={{
+          fontSize: '0.7rem', color: 'var(--color-text-light)', marginTop: '0.25rem',
+          paddingLeft: '0.25rem',
+        }}>
+          {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Standard message bubble ────────────────────────────────────────
 function MessageBubble({ msg }) {
   const isUser = msg.sender === 'user';
-  // metadata.emotion is an object { emotion, confidence, ... } from backend
+  // Check if this is a crisis AI message (safety module response)
+  const isCrisis = !isUser && !!msg.metadata?.isCrisis;
+
+  if (isCrisis) {
+    return <CrisisMessageBubble msg={msg} />;
+  }
+
   const emotionLabel = msg.metadata?.emotion?.emotion || null;
 
   return (
@@ -85,6 +199,7 @@ function MessageBubble({ msg }) {
   );
 }
 
+// ── Conversation sidebar item ──────────────────────────────────────
 function ConversationItem({ conv, active, onClick }) {
   return (
     <button
@@ -108,6 +223,7 @@ function ConversationItem({ conv, active, onClick }) {
   );
 }
 
+// ── Main Chat component ────────────────────────────────────────────
 export default function Chat() {
   const [conversations, setConversations] = useState([]);
   const [activeId, setActiveId]           = useState(null);
@@ -123,13 +239,11 @@ export default function Chat() {
   const inputRef  = useRef(null);
 
   // ── Load conversation list ──────────────────────────────────────
-  // Backend: GET /chat → paginated() → { data: [], pagination: {} }
   const loadConversations = useCallback(async () => {
     setConvLoading(true);
     setConvError('');
     try {
       const { data } = await chatService.listConversations({ limit: 50, sort: 'newest' });
-      // paginated() helper returns: { success, message, data: [...], pagination: {...} }
       setConversations(Array.isArray(data.data) ? data.data : []);
     } catch {
       setConvError('Could not load conversations.');
@@ -141,13 +255,11 @@ export default function Chat() {
   useEffect(() => { loadConversations(); }, [loadConversations]);
 
   // ── Load messages ───────────────────────────────────────────────
-  // Backend: GET /chat/:id/messages → paginated() → { data: [], pagination: {} }
   const loadMessages = useCallback(async (convId) => {
     setMsgLoading(true);
     setMsgError('');
     try {
       const { data } = await chatService.getMessages(convId, { limit: 100, sort: 'oldest' });
-      // paginated() → data.data is the array directly
       setMessages(Array.isArray(data.data) ? data.data : []);
     } catch {
       setMsgError('Could not load messages.');
@@ -167,7 +279,6 @@ export default function Chat() {
   }, [messages]);
 
   // ── Create conversation ─────────────────────────────────────────
-  // Backend: POST /chat → created() → { data: { conversation } }
   const createConversation = async (titleHint = '') => {
     try {
       const { data } = await chatService.createConversation(titleHint || 'New chat');
@@ -184,8 +295,9 @@ export default function Chat() {
   };
 
   // ── Send message via unified backend pipeline ───────────────────
-  // Backend: POST /chat/:id/send → { data: { userMessage, aiMessage, emotion } }
-  // The backend handles: emotion detection, context retrieval, response generation
+  // Backend: POST /chat/:id/send → { data: { userMessage, aiMessage, emotion, isCrisis, resources } }
+  // Safety runs FIRST on the backend; if isCrisis is true, aiMessage.metadata.isCrisis is set
+  // and the CrisisMessageBubble component renders the dedicated safety UI.
   const sendMessage = async () => {
     const text = input.trim();
     if (!text || sending) return;
@@ -210,22 +322,27 @@ export default function Chat() {
 
     try {
       const { data } = await chatService.sendAndProcess(convId, text);
-      // Backend returns: { data: { userMessage, aiMessage, emotion } }
-      const { userMessage, aiMessage } = data.data;
+      // Backend returns: { data: { userMessage, aiMessage, emotion, isCrisis, resources } }
+      const { userMessage, aiMessage, isCrisis, resources } = data.data;
+
+      // If this was a crisis response, attach resources to aiMessage.metadata
+      // so CrisisMessageBubble can render them without a separate API call.
+      const enrichedAiMessage = isCrisis
+        ? { ...aiMessage, metadata: { ...aiMessage.metadata, isCrisis: true, resources } }
+        : aiMessage;
 
       setMessages((prev) => [
         ...prev.filter((m) => m._id !== tempId),
         userMessage,
-        aiMessage,
+        enrichedAiMessage,
       ]);
 
-      // Refresh sidebar
       loadConversations();
     } catch (err) {
       setMessages((prev) => prev.filter((m) => m._id !== tempId));
       const status = err.response?.status;
       if (status === 503) {
-        setMsgError('⚠️ If you\'re in crisis, please reach out to a trusted person or helpline. Your wellbeing matters.');
+        setMsgError("⚠️ If you're in crisis, please reach out to a trusted person or helpline. Your wellbeing matters.");
       } else {
         setMsgError('Something went wrong sending your message. Please try again.');
       }
@@ -322,7 +439,7 @@ export default function Chat() {
                     <div key={i} style={{ width: 6, height: 6, background: 'var(--color-primary)', borderRadius: '50%', animation: `bounce 0.9s ${i*0.2}s ease-in-out infinite` }} />
                   ))}
                 </div>
-                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>MindCare is thinking…</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>MindCare is here for you…</span>
               </div>
             )}
 
