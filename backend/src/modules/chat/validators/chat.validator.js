@@ -19,8 +19,9 @@
  *
  * EXPORTS
  * -------
- * validateCreateConversation, validateSendMessage, validateRenameConversation,
- * validateListConversations, validatePaginationQuery, validateConversationId
+ * validateCreateConversation, validateSendMessage, validateSendAndProcess,
+ * validateRenameConversation, validateListConversations, validatePaginationQuery,
+ * validateConversationId
  *
  * DEPENDS ON
  * ----------
@@ -78,6 +79,28 @@ const sendMessageSchema = Joi.object({
     .default(CHAT.MESSAGE_TYPE.TEXT),
 
   metadata: Joi.object().optional().default({}),
+});
+
+// ── /send pipeline schema ─────────────────────────────────────────
+// The frontend POST /chat/:conversationId/send sends ONLY { content }.
+// Do NOT reuse sendMessageSchema here — that requires { sender, content }
+// which is the raw message-save contract, not the pipeline contract.
+// This validator is the input gate for MessagePipelineService:
+// it must fire BEFORE SafetyService ever receives the text.
+
+const sendAndProcessSchema = Joi.object({
+  content: Joi.string()
+    .min(CHAT.MESSAGE_MIN_LENGTH)
+    .max(CHAT.MESSAGE_MAX_LENGTH)
+    .trim()
+    .required()
+    .messages({
+      'string.base':   'Message content must be a string',
+      'string.empty':  'Message content cannot be empty',
+      'string.min':    'Message content cannot be empty',
+      'string.max':    `Message cannot exceed ${CHAT.MESSAGE_MAX_LENGTH} characters`,
+      'any.required':  'Message content is required',
+    }),
 });
 
 const renameConversationSchema = Joi.object({
@@ -146,30 +169,15 @@ const validateQuery = (schema) => (req, _res, next) => {
 };
 
 // ── Param validator ───────────────────────────────────────────────
-
-export const validateConversationId = (req, _res, next) => {
-  const { error } = objectIdSchema.validate(req.params.conversationId);
-  if (error) {
-    const { ValidationError: VE } = require('../../../shared/errors/http-errors.js');
-    return next(new ValidationError('Invalid conversation ID — must be a 24-character hex string'));
-  }
-  next();
-};
-
-// We use a plain function approach to keep it ESM-compatible
-const validateConversationIdMiddleware = (req, _res, next) => {
-  const id = req.params.conversationId;
-  if (!id || !/^[a-f\d]{24}$/i.test(id)) {
-    return next(new ValidationError('Invalid conversation ID — must be a 24-character hex string'));
-  }
-  next();
-};
+// Re-exported from shared — single authoritative implementation shared
+// across all modules. Do not redefine locally.
+export { validateConversationId } from '../../../shared/validators/conversation-id.validator.js';
 
 // ── Named exports ─────────────────────────────────────────────────
 
 export const validateCreateConversation  = validateBody(createConversationSchema);
 export const validateSendMessage         = validateBody(sendMessageSchema);
+export const validateSendAndProcess      = validateBody(sendAndProcessSchema);
 export const validateRenameConversation  = validateBody(renameConversationSchema);
 export const validateListConversations   = validateQuery(listConversationsSchema);
 export const validatePaginationQuery     = validateQuery(paginationQuerySchema);
-//export { validateConversationIdMiddleware as validateConversationId };

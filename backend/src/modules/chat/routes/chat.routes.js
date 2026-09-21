@@ -29,6 +29,7 @@ import * as controller   from '../controllers/chat.controller.js';
 import {
   validateCreateConversation,
   validateSendMessage,
+  validateSendAndProcess,
   validateRenameConversation,
   validateListConversations,
   validatePaginationQuery,
@@ -281,6 +282,7 @@ router.patch(
 router.post(
   '/:conversationId/send',
   validateConversationId,
+  validateSendAndProcess,
   controller.sendAndProcess
 );
 

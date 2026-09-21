@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import journalService from '../../services/journal.service.js';
-import Loading from '../../components/common/Loading.jsx';
+import Loading      from '../../components/common/Loading.jsx';
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
-import EmptyState from '../../components/common/EmptyState.jsx';
-import AppLayout from '../../layouts/AppLayout.jsx';
+import EmptyState   from '../../components/common/EmptyState.jsx';
+import AppLayout    from '../../layouts/AppLayout.jsx';
+import './Journal.css';
 
 const EMOTIONS = ['happy', 'sad', 'angry', 'fear', 'anxiety', 'neutral', 'surprise'];
 
+// Colors keyed by runtime emotion label — cannot be static CSS
 const EMOTION_META = {
   happy:    { emoji: '😊', color: '#22c55e' },
   sad:      { emoji: '😢', color: '#60a5fa' },
@@ -20,13 +22,14 @@ const EMOTION_META = {
 function EmotionPill({ emotion }) {
   const meta = EMOTION_META[emotion] || { emoji: '🔵', color: '#94a3b8' };
   return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-      padding: '0.2rem 0.65rem', borderRadius: 'var(--radius-full)',
-      fontSize: '0.78rem', fontWeight: 600,
-      background: meta.color + '18', color: meta.color,
-      border: `1px solid ${meta.color}33`,
-    }}>
+    <span
+      className="emotion-pill"
+      style={{
+        background: meta.color + '18',
+        color:      meta.color,
+        border:     `1px solid ${meta.color}33`,
+      }}
+    >
       {meta.emoji} {emotion}
     </span>
   );
@@ -43,42 +46,35 @@ function EntryCard({ entry, onEdit, onDelete }) {
   };
 
   return (
-    <div style={{
-      background: 'var(--color-surface)',
-      border: '1px solid var(--color-border)',
-      borderRadius: 'var(--radius-lg)',
-      padding: '1.25rem',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '0.75rem',
-      animation: 'fadeIn 0.2s ease',
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+    <div className="entry-card">
+      <div className="entry-card-top">
+        <div className="entry-card-meta">
           <EmotionPill emotion={entry.emotion} />
-          <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
-            {new Date(entry.createdAt).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+          <span className="entry-card-date">
+            {new Date(entry.createdAt).toLocaleDateString('en-US', {
+              weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+            })}
             {' '}at{' '}
             {new Date(entry.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button onClick={() => onEdit(entry)} style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: '0.35rem 0.75rem', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--color-text)' }}>✏️ Edit</button>
-          <button onClick={handleDelete} disabled={deleting} style={{ background: 'var(--color-error-light)', border: '1px solid #fca5a5', borderRadius: 'var(--radius-md)', padding: '0.35rem 0.75rem', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--color-error)' }}>
+        <div className="entry-card-actions">
+          <button onClick={() => onEdit(entry)} className="entry-edit-btn">✏️ Edit</button>
+          <button onClick={handleDelete} disabled={deleting} className="entry-delete-btn">
             {deleting ? '…' : '🗑️ Delete'}
           </button>
         </div>
       </div>
 
       <div>
-        <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '0.3rem' }}>Reflection</p>
-        <p style={{ fontSize: '0.9rem', lineHeight: 1.65, color: 'var(--color-text)', whiteSpace: 'pre-wrap' }}>{entry.reflection}</p>
+        <p className="entry-section-label">Reflection</p>
+        <p className="entry-reflection">{entry.reflection}</p>
       </div>
 
       {entry.notes && (
-        <div style={{ background: 'var(--color-surface-2)', borderRadius: 'var(--radius-md)', padding: '0.65rem 0.9rem' }}>
-          <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>Notes</p>
-          <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', whiteSpace: 'pre-wrap' }}>{entry.notes}</p>
+        <div className="entry-notes-block">
+          <p className="entry-section-label">Notes</p>
+          <p className="entry-notes-text">{entry.notes}</p>
         </div>
       )}
     </div>
@@ -87,9 +83,9 @@ function EntryCard({ entry, onEdit, onDelete }) {
 
 function JournalForm({ initial, onSave, onCancel, saving }) {
   const [form, setForm] = useState({
-    emotion: initial?.emotion || '',
+    emotion:    initial?.emotion    || '',
     reflection: initial?.reflection || '',
-    notes: initial?.notes || '',
+    notes:      initial?.notes      || '',
   });
   const [errors, setErrors] = useState({});
 
@@ -109,14 +105,15 @@ function JournalForm({ initial, onSave, onCancel, saving }) {
   };
 
   const field = (label, name, type = 'input', extra = {}) => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-      <label htmlFor={name} style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)' }}>{label}</label>
+    <div className="jform-field">
+      <label htmlFor={name} className="jform-label">{label}</label>
       {type === 'select' ? (
         <select
           id={name}
           value={form[name]}
           onChange={(e) => { setForm((p) => ({ ...p, [name]: e.target.value })); setErrors((p) => ({ ...p, [name]: '' })); }}
-          style={{ padding: '0.65rem 0.75rem', border: `1px solid ${errors[name] ? 'var(--color-error)' : 'var(--color-border)'}`, borderRadius: 'var(--radius-md)', fontSize: '0.9rem', background: 'var(--color-bg)' }}
+          className="jform-select"
+          style={{ border: `1px solid ${errors[name] ? 'var(--color-error)' : 'var(--color-border)'}` }}
         >
           <option value="">Select emotion…</option>
           {EMOTIONS.map((em) => (
@@ -130,23 +127,29 @@ function JournalForm({ initial, onSave, onCancel, saving }) {
           onChange={(e) => { setForm((p) => ({ ...p, [name]: e.target.value })); setErrors((p) => ({ ...p, [name]: '' })); }}
           rows={extra.rows || 4}
           placeholder={extra.placeholder || ''}
-          style={{ padding: '0.65rem 0.75rem', border: `1px solid ${errors[name] ? 'var(--color-error)' : 'var(--color-border)'}`, borderRadius: 'var(--radius-md)', fontSize: '0.9rem', resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.6 }}
+          className="jform-textarea"
+          style={{ border: `1px solid ${errors[name] ? 'var(--color-error)' : 'var(--color-border)'}` }}
         />
       )}
-      {errors[name] && <span style={{ color: 'var(--color-error)', fontSize: '0.78rem' }}>{errors[name]}</span>}
+      {errors[name] && <span className="jform-error-msg">{errors[name]}</span>}
     </div>
   );
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <form onSubmit={handleSubmit} className="jform-root">
       {field('Emotion *', 'emotion', 'select')}
-      {field('Reflection *', 'reflection', 'textarea', { placeholder: 'How are you feeling? What\'s on your mind?', rows: 5 })}
+      {field('Reflection *', 'reflection', 'textarea', { placeholder: "How are you feeling? What's on your mind?", rows: 5 })}
       {field('Notes', 'notes', 'textarea', { placeholder: 'Any additional thoughts… (optional)', rows: 3 })}
-      <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+      <div className="jform-actions">
         {onCancel && (
-          <button type="button" onClick={onCancel} style={{ padding: '0.65rem 1.25rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', background: 'transparent', cursor: 'pointer', fontSize: '0.9rem' }}>Cancel</button>
+          <button type="button" onClick={onCancel} className="jform-cancel-btn">Cancel</button>
         )}
-        <button type="submit" disabled={saving} style={{ padding: '0.65rem 1.5rem', background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 'var(--radius-md)', fontWeight: 600, fontSize: '0.9rem', cursor: saving ? 'not-allowed' : 'pointer' }}>
+        <button
+          type="submit"
+          disabled={saving}
+          className="jform-submit-btn"
+          style={{ cursor: saving ? 'not-allowed' : 'pointer' }}
+        >
           {saving ? 'Saving…' : (initial ? 'Update Entry' : 'Save Journal Entry')}
         </button>
       </div>
@@ -155,23 +158,21 @@ function JournalForm({ initial, onSave, onCancel, saving }) {
 }
 
 export default function Journal() {
-  const [entries, setEntries]         = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [error, setError]             = useState('');
-  const [page, setPage]               = useState(1);
-  const [totalPages, setTotalPages]   = useState(1);
-  const [showForm, setShowForm]       = useState(false);
-  const [editEntry, setEditEntry]     = useState(null);
-  const [saving, setSaving]           = useState(false);
-  const [formError, setFormError]     = useState('');
+  const [entries,    setEntries]    = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState('');
+  const [page,       setPage]       = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [showForm,   setShowForm]   = useState(false);
+  const [editEntry,  setEditEntry]  = useState(null);
+  const [saving,     setSaving]     = useState(false);
+  const [formError,  setFormError]  = useState('');
 
   const loadEntries = useCallback(async (pg = 1) => {
     setLoading(true);
     setError('');
     try {
       const { data } = await journalService.listEntries({ page: pg, limit: 10 });
-      // paginated() returns: { data: [], pagination: {} } at top level
-      // axios wraps in data: { success, message, data: [], pagination: {} }
       setEntries(Array.isArray(data.data) ? data.data : []);
       const pagination = data.pagination || {};
       setTotalPages(pagination.totalPages || 1);
@@ -224,15 +225,18 @@ export default function Journal() {
 
   return (
     <AppLayout>
-      <div style={{ maxWidth: 760, margin: '0 auto', padding: '1.5rem 1.25rem' }}>
+      <div className="journal-page">
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-          <div>
-            <h2 style={{ fontWeight: 700, fontSize: '1.4rem' }}>📓 Mood Journal</h2>
-            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginTop: '0.2rem' }}>Track your emotions and reflections over time.</p>
+        <div className="journal-header">
+          <div className="journal-header-text">
+            <h2 className="journal-title">📓 Mood Journal</h2>
+            <p className="journal-subtitle">Track your emotions and reflections over time.</p>
           </div>
           {!showForm && (
-            <button onClick={() => { setShowForm(true); setEditEntry(null); setFormError(''); }} style={{ background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 'var(--radius-md)', padding: '0.65rem 1.25rem', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>
+            <button
+              onClick={() => { setShowForm(true); setEditEntry(null); setFormError(''); }}
+              className="journal-new-btn"
+            >
               + New Entry
             </button>
           )}
@@ -240,16 +244,16 @@ export default function Journal() {
 
         {/* Form */}
         {showForm && (
-          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '1.5rem', marginBottom: '1.5rem', animation: 'fadeIn 0.2s ease' }}>
-            <h3 style={{ fontWeight: 600, marginBottom: '1rem' }}>{editEntry ? 'Edit Entry' : 'New Journal Entry'}</h3>
-            {formError && <div style={{ marginBottom: '1rem' }}><ErrorMessage message={formError} /></div>}
+          <div className="journal-form-card">
+            <h3 className="journal-form-title">{editEntry ? 'Edit Entry' : 'New Journal Entry'}</h3>
+            {formError && <div className="journal-form-error"><ErrorMessage message={formError} /></div>}
             <JournalForm initial={editEntry} onSave={handleSave} onCancel={handleCancel} saving={saving} />
           </div>
         )}
 
         {/* Entries list */}
         {loading && <Loading text="Loading journal…" />}
-        {error && <ErrorMessage message={error} onRetry={() => loadEntries(page)} />}
+        {error   && <ErrorMessage message={error} onRetry={() => loadEntries(page)} />}
 
         {!loading && !error && entries.length === 0 && (
           <EmptyState
@@ -257,14 +261,17 @@ export default function Journal() {
             title="No journal entries yet"
             description="Record your first mood to start tracking your emotional journey."
             action={!showForm && (
-              <button onClick={() => { setShowForm(true); setEditEntry(null); }} style={{ background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 'var(--radius-md)', padding: '0.65rem 1.25rem', fontWeight: 600, cursor: 'pointer' }}>
+              <button
+                onClick={() => { setShowForm(true); setEditEntry(null); }}
+                className="journal-empty-btn"
+              >
                 Record your first mood
               </button>
             )}
           />
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="journal-list">
           {entries.map((entry) => (
             <EntryCard key={entry._id} entry={entry} onEdit={handleEdit} onDelete={handleDelete} />
           ))}
@@ -272,10 +279,24 @@ export default function Journal() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '2rem' }}>
-            <button onClick={() => loadEntries(page - 1)} disabled={page === 1} style={{ padding: '0.5rem 1rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', background: 'var(--color-surface)', cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.5 : 1 }}>← Prev</button>
-            <span style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Page {page} of {totalPages}</span>
-            <button onClick={() => loadEntries(page + 1)} disabled={page === totalPages} style={{ padding: '0.5rem 1rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', background: 'var(--color-surface)', cursor: page === totalPages ? 'not-allowed' : 'pointer', opacity: page === totalPages ? 0.5 : 1 }}>Next →</button>
+          <div className="journal-pagination">
+            <button
+              onClick={() => loadEntries(page - 1)}
+              disabled={page === 1}
+              className="journal-pagination-btn"
+              style={{ cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.5 : 1 }}
+            >
+              ← Prev
+            </button>
+            <span className="journal-pagination-info">Page {page} of {totalPages}</span>
+            <button
+              onClick={() => loadEntries(page + 1)}
+              disabled={page === totalPages}
+              className="journal-pagination-btn"
+              style={{ cursor: page === totalPages ? 'not-allowed' : 'pointer', opacity: page === totalPages ? 0.5 : 1 }}
+            >
+              Next →
+            </button>
           </div>
         )}
       </div>

@@ -1,0 +1,132 @@
+/* ── Auth pages (Login + Register) ──────────────────────────────
+   Shared by Login.jsx and Register.jsx via import.
+   onFocus/onBlur border-color transitions remain inline because
+   they are event-driven and cannot be expressed with pure CSS
+   without :focus (which doesn't apply here due to outline:none).
+   We use :focus-within on the label wrapper instead — but to
+   avoid changing existing behaviour we keep focus handlers inline.
+──────────────────────────────────────────────────────────────── */
+
+/* ── Page shell ──────────────────────────────────────────────── */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ede9ff 0%, #f0f4ff 100%);
+  padding: 1rem;
+}
+
+/* ── Card ────────────────────────────────────────────────────── */
+.auth-card {
+  background: #fff;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 420px;
+  overflow: hidden;
+}
+
+/* ── Card header band ────────────────────────────────────────── */
+.auth-header {
+  background: var(--color-primary);
+  padding: 2rem;
+  text-align: center;
+}
+
+.auth-header-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.auth-header-title {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.auth-header-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.875rem;
+  margin: 0.25rem 0 0;
+}
+
+/* ── Form body ───────────────────────────────────────────────── */
+.auth-form {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.auth-form-title {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* ── Inline error alert ──────────────────────────────────────── */
+.auth-error {
+  color: var(--color-error);
+  font-size: 0.875rem;
+  background: var(--color-error-light);
+  padding: 0.65rem 0.9rem;
+  border-radius: var(--radius-md);
+  margin: 0;
+}
+
+/* ── Field group ─────────────────────────────────────────────── */
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.auth-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.auth-label-hint {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+/* border-color transition on focus handled inline via onFocus/onBlur */
+.auth-input {
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+/* ── Submit button ───────────────────────────────────────────── */
+/* opacity/cursor set inline — depend on loading state */
+.auth-submit-btn {
+  padding: 0.8rem;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-top: 0.25rem;
+  transition: opacity 0.15s;
+}
+
+/* ── Footer link ─────────────────────────────────────────────── */
+.auth-footer {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.auth-footer-link {
+  color: var(--color-primary);
+  font-weight: 600;
+}

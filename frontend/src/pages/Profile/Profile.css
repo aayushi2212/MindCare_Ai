@@ -1,0 +1,79 @@
+/* ── Profile page styles ─────────────────────────────────────── */
+
+.profile-page {
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem;
+}
+
+.profile-title {
+  font-weight: 700;
+  font-size: 1.4rem;
+  margin-bottom: 1.5rem;
+}
+
+.profile-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.profile-avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--color-primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  flex-shrink: 0;
+}
+
+.profile-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.profile-email {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.profile-divider {
+  border: none;
+  border-top: 1px solid var(--color-border);
+}
+
+.profile-info-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.profile-info-value {
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.profile-logout-btn {
+  padding: 0.75rem;
+  background: var(--color-error-light);
+  border: 1px solid #fca5a5;
+  border-radius: var(--radius-md);
+  color: var(--color-error);
+  font-weight: 600;
+  font-size: 0.9rem;
+  /* cursor set inline — not-allowed when logging out */
+}

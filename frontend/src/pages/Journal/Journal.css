@@ -1,0 +1,265 @@
+/* ── Journal page styles ─────────────────────────────────────────
+   Scoped with .journal-* and .entry-* prefixes.
+   Emotion pill colors (background, color, border) stay inline
+   because they are keyed by runtime emotion labels.
+──────────────────────────────────────────────────────────────── */
+
+/* ── Page wrapper ────────────────────────────────────────────── */
+.journal-page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem;
+}
+
+/* ── Page header ─────────────────────────────────────────────── */
+.journal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.journal-header-text {}
+
+.journal-title {
+  font-weight: 700;
+  font-size: 1.4rem;
+}
+
+.journal-subtitle {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  margin-top: 0.2rem;
+}
+
+.journal-new-btn {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.65rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* ── Form card ───────────────────────────────────────────────── */
+.journal-form-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.journal-form-title {
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.journal-form-error {
+  margin-bottom: 1rem;
+}
+
+/* ── JournalForm internal ────────────────────────────────────── */
+.jform-root {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.jform-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.jform-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* border color set inline when error state changes */
+.jform-select,
+.jform-textarea {
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  background: var(--color-bg);
+  /* border set inline — switches to error color on validation failure */
+}
+
+.jform-textarea {
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.6;
+}
+
+.jform-error-msg {
+  color: var(--color-error);
+  font-size: 0.78rem;
+}
+
+.jform-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.jform-cancel-btn {
+  padding: 0.65rem 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.jform-submit-btn {
+  padding: 0.65rem 1.5rem;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.9rem;
+  /* cursor set inline — not-allowed when saving */
+}
+
+/* ── Entry list ──────────────────────────────────────────────── */
+.journal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ── Entry card ──────────────────────────────────────────────── */
+.entry-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.entry-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.entry-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.entry-card-date {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.entry-card-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.entry-edit-btn {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.entry-delete-btn {
+  background: var(--color-error-light);
+  border: 1px solid #fca5a5;
+  border-radius: var(--radius-md);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--color-error);
+}
+
+.entry-section-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: 0.3rem;
+}
+
+.entry-reflection {
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--color-text);
+  white-space: pre-wrap;
+}
+
+.entry-notes-block {
+  background: var(--color-surface-2);
+  border-radius: var(--radius-md);
+  padding: 0.65rem 0.9rem;
+}
+
+.entry-notes-text {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  white-space: pre-wrap;
+}
+
+/* Emotion pill — color values set inline (runtime emotion data) */
+.emotion-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 600;
+  /* background, color, border set inline */
+}
+
+/* ── Pagination ──────────────────────────────────────────────── */
+.journal-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+}
+
+.journal-pagination-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  /* cursor, opacity set inline — depends on disabled state */
+}
+
+.journal-pagination-info {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+/* ── Empty-state action button ──────────────────────────────── */
+.journal-empty-btn {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.65rem 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import AppLayout from '../../layouts/AppLayout.jsx';
+import './Profile.css';
 
 export default function Profile() {
   const { user, logout } = useAuth();
@@ -13,41 +14,49 @@ export default function Profile() {
 
   return (
     <AppLayout>
-      <div style={{ maxWidth: 540, margin: '0 auto', padding: '2rem 1.25rem' }}>
-        <h2 style={{ fontWeight: 700, fontSize: '1.4rem', marginBottom: '1.5rem' }}>👤 Profile</h2>
+      <div className="profile-page">
+        <h2 className="profile-title">👤 Profile</h2>
 
-        <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-xl)', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div className="profile-card">
           {/* Avatar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.75rem', flexShrink: 0 }}>
+          <div className="profile-avatar-row">
+            <div className="profile-avatar">
               {user?.fullName?.[0]?.toUpperCase() || '👤'}
             </div>
             <div>
-              <p style={{ fontWeight: 700, fontSize: '1.1rem' }}>{user?.fullName || 'User'}</p>
-              <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>{user?.email}</p>
+              <p className="profile-name">{user?.fullName || 'User'}</p>
+              <p className="profile-email">{user?.email}</p>
             </div>
           </div>
 
-          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)' }} />
+          <hr className="profile-divider" />
 
           {/* Info rows */}
           {[
-            { label: 'Full Name', value: user?.fullName },
-            { label: 'Email', value: user?.email },
-            { label: 'Member Since', value: user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—' },
+            { label: 'Full Name',     value: user?.fullName },
+            { label: 'Email',         value: user?.email },
+            {
+              label: 'Member Since',
+              value: user?.createdAt
+                ? new Date(user.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric', month: 'long', day: 'numeric',
+                  })
+                : '—',
+            },
           ].map(({ label, value }) => (
             <div key={label}>
-              <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>{label}</p>
-              <p style={{ fontSize: '0.9rem', color: 'var(--color-text)' }}>{value || '—'}</p>
+              <p className="profile-info-label">{label}</p>
+              <p className="profile-info-value">{value || '—'}</p>
             </div>
           ))}
 
-          <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)' }} />
+          <hr className="profile-divider" />
 
           <button
             onClick={handleLogout}
             disabled={loggingOut}
-            style={{ padding: '0.75rem', background: 'var(--color-error-light)', border: '1px solid #fca5a5', borderRadius: 'var(--radius-md)', color: 'var(--color-error)', fontWeight: 600, fontSize: '0.9rem', cursor: loggingOut ? 'not-allowed' : 'pointer' }}
+            className="profile-logout-btn"
+            style={{ cursor: loggingOut ? 'not-allowed' : 'pointer' }}
           >
             {loggingOut ? 'Signing out…' : '🚪 Sign Out'}
           </button>

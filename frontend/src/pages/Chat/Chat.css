@@ -1,0 +1,427 @@
+/* ── Chat page layout ─────────────────────────────────────────────
+   Scoped with .chat-* and .msg-* prefixes to avoid collisions.
+   Dynamic values (emotion colors per badge) stay inline in JSX
+   because they depend on runtime emotion data.
+──────────────────────────────────────────────────────────────── */
+
+/* ── Root layout ─────────────────────────────────────────────── */
+.chat-root {
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────── */
+.chat-sidebar {
+  width: 260px;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.chat-sidebar-header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chat-sidebar-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.chat-sidebar-new-btn {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.3rem 0.65rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.chat-sidebar-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.chat-sidebar-empty {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  padding: 1rem 0.5rem;
+}
+
+.chat-sidebar-error {
+  color: var(--color-error);
+  font-size: 0.8rem;
+  padding: 0.5rem;
+}
+
+/* ── Sidebar conversation button ────────────────────────────── */
+.conv-item {
+  width: 100%;
+  text-align: left;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  transition: background 0.15s;
+}
+
+.conv-item.conv-item--active {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.conv-item-icon {
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.conv-item-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Chat area ───────────────────────────────────────────────── */
+.chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+/* Topbar */
+.chat-topbar {
+  padding: 0.75rem 1.25rem;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.chat-topbar-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.chat-sidebar-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+
+/* Message area */
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+}
+
+/* Input area */
+.chat-input-area {
+  padding: 1rem;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+.chat-input-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.chat-textarea {
+  flex: 1;
+  resize: none;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  background: var(--color-bg);
+  max-height: 120px;
+  outline: none;
+  transition: border-color 0.15s;
+  overflow-y: auto;
+  font-family: inherit;
+}
+
+.chat-textarea:focus {
+  border-color: var(--color-primary);
+}
+
+/* Send button — base layout; state appearance via modifier classes */
+.chat-send-btn {
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+/* Active state — input has content and not currently sending */
+.chat-send-btn--active {
+  background: var(--color-primary);
+  color: #fff;
+  cursor: pointer;
+}
+
+/* Disabled state — empty input or currently sending */
+.chat-send-btn--disabled {
+  background: var(--color-border);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+/* Typing indicator */
+.chat-typing {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding-left: 0.5rem;
+}
+
+.chat-typing-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.chat-typing-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  animation: chat-bounce 0.9s ease-in-out infinite;
+}
+
+.chat-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.chat-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+.chat-typing-label {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.chat-msg-error {
+  margin-top: 0.5rem;
+}
+
+/* ── Message bubbles ────────────────────────────────────────── */
+.msg-row {
+  display: flex;
+  margin-bottom: 1rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.msg-row--user    { justify-content: flex-end; }
+.msg-row--ai      { justify-content: flex-start; }
+.msg-row--crisis  { justify-content: flex-start; }
+
+.msg-content {
+  max-width: 72%;
+}
+
+.msg-content--crisis {
+  max-width: 80%;
+}
+
+.msg-sender-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.3rem;
+  padding-left: 0.25rem;
+}
+
+.msg-sender-icon {
+  font-size: 1.1rem;
+}
+
+.msg-sender-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.msg-sender-name--crisis {
+  color: #1e40af;
+}
+
+.msg-bubble {
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  box-shadow: var(--shadow-sm);
+}
+
+.msg-bubble--user {
+  border-radius: 18px 18px 4px 18px;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+}
+
+.msg-bubble--ai {
+  border-radius: 18px 18px 18px 4px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.msg-bubble--crisis {
+  border-radius: 18px 18px 18px 4px;
+  background: #eff6ff;
+  color: #1e3a5f;
+  border: 1px solid #bfdbfe;
+}
+
+.msg-emotion {
+  padding-left: 0.25rem;
+}
+
+.msg-time {
+  font-size: 0.7rem;
+  color: var(--color-text-light);
+  margin-top: 0.25rem;
+}
+
+.msg-time--user {
+  text-align: right;
+  padding-right: 0.25rem;
+}
+
+.msg-time--ai {
+  text-align: left;
+  padding-left: 0.25rem;
+}
+
+/* ── Emotion badge ──────────────────────────────────────────── */
+/* background, color, border set inline because they are runtime emotion data */
+.emotion-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+  margin-top: 0.25rem;
+}
+
+/* ── Crisis resources card ──────────────────────────────────── */
+.crisis-resources {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  background: #f0f7ff;
+  border: 1px solid #bfdbfe;
+}
+
+.crisis-resources-heading {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1e40af;
+  margin-bottom: 0.5rem;
+}
+
+.crisis-resources-section {
+  margin-bottom: 0.5rem;
+}
+
+.crisis-resources-section-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.25rem;
+}
+
+.crisis-resource-item {
+  font-size: 0.75rem;
+  color: #374151;
+  margin-bottom: 0.2rem;
+}
+
+.crisis-resource-number {
+  color: #1d4ed8;
+}
+
+.crisis-resource-desc {
+  color: #6b7280;
+}
+
+.crisis-resource-link {
+  color: #1d4ed8;
+}
+
+.crisis-resources-trusted {
+  font-size: 0.75rem;
+  color: #374151;
+  font-style: italic;
+  margin-top: 0.25rem;
+}
+
+/* ── Empty-state action button ──────────────────────────────── */
+.chat-empty-btn {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.65rem 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ── Animations ─────────────────────────────────────────────── */
+@keyframes chat-bounce {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-4px); }
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .chat-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 60;
+  }
+
+  .chat-sidebar.chat-sidebar-open {
+    transform: translateX(0);
+  }
+
+  .chat-sidebar-toggle {
+    display: block;
+  }
+}

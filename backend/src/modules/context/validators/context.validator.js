@@ -81,14 +81,7 @@ const validateQuery = (schema) => (req, _res, next) => {
 
 // ── Named exports ─────────────────────────────────────────────────
 
-export const validateConversationId = (req, _res, next) => {
-  const id = req.params.conversationId;
-  if (!id || !/^[a-f\d]{24}$/i.test(id)) {
-    return next(new ValidationError(
-      'Invalid conversation ID — must be a 24-character hex string'
-    ));
-  }
-  next();
-};
+// Re-exported from shared — single authoritative implementation.
+export { validateConversationId } from '../../../shared/validators/conversation-id.validator.js';
 
 export const validateContextQuery = validateQuery(contextQuerySchema);

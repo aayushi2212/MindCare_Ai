@@ -1,0 +1,87 @@
+/* ── Shared common component styles ─────────────────────────────
+   Used by Loading, ErrorMessage, EmptyState.
+   Spinner size stays inline (size prop is a runtime number).
+──────────────────────────────────────────────────────────────── */
+
+/* ── Loading spinner ─────────────────────────────────────────── */
+.loading-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem;
+}
+
+/* width/height set inline — driven by the size prop */
+.loading-spinner {
+  border: 3px solid var(--color-primary-light);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.loading-text {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+/* ── Error message ───────────────────────────────────────────── */
+.error-root {
+  background: var(--color-error-light);
+  border: 1px solid #fca5a5;
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.error-text {
+  color: var(--color-error);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.error-retry-btn {
+  background: var(--color-error);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* ── Empty state ─────────────────────────────────────────────── */
+.empty-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.empty-title {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.empty-description {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  max-width: 320px;
+}
+
+.empty-action {
+  margin-top: 0.5rem;
+}

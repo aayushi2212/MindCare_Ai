@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import AppLayout from '../../layouts/AppLayout.jsx';
 import { useAuth } from '../../context/AuthContext';
+import './Settings.css';
 
 const THEMES = [
   { label: 'System default', value: 'system' },
@@ -11,7 +12,6 @@ const THEMES = [
 export default function Settings() {
   const { user } = useAuth();
 
-  // Local-only preferences (no backend required for V1)
   const [theme, setTheme] = useState(
     () => localStorage.getItem('mc_theme') || 'system'
   );
@@ -27,43 +27,24 @@ export default function Settings() {
     setTimeout(() => setSaved(false), 2000);
   };
 
-  const rowStyle = {
-    display:       'flex',
-    alignItems:    'center',
-    justifyContent:'space-between',
-    padding:       '0.85rem 0',
-    borderBottom:  '1px solid var(--color-border)',
-  };
-  const labelStyle = { fontSize: '0.9rem', fontWeight: 500 };
-  const subStyle   = { fontSize: '0.78rem', color: 'var(--color-text-muted)', marginTop: '0.15rem' };
-
   return (
     <AppLayout>
-      <div style={{ maxWidth: 560, margin: '0 auto', padding: '2rem 1.25rem' }}>
-        <h2 style={{ fontWeight: 700, fontSize: '1.4rem', marginBottom: '1.75rem' }}>⚙️ Settings</h2>
+      <div className="settings-page">
+        <h2 className="settings-title">⚙️ Settings</h2>
 
-        {/* ── Appearance ──────────────────────────────────────────── */}
-        <section style={{ marginBottom: '2rem' }}>
-          <h3 style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.5rem' }}>
-            Appearance
-          </h3>
-          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '0 1.25rem' }}>
-            <div style={rowStyle}>
+        {/* ── Appearance ── */}
+        <section className="settings-section">
+          <h3 className="settings-section-heading">Appearance</h3>
+          <div className="settings-panel">
+            <div className="settings-row">
               <div>
-                <div style={labelStyle}>Theme</div>
-                <div style={subStyle}>Controls the colour scheme of the app.</div>
+                <div className="settings-row-label">Theme</div>
+                <div className="settings-row-sub">Controls the colour scheme of the app.</div>
               </div>
               <select
                 value={theme}
                 onChange={(e) => setTheme(e.target.value)}
-                style={{
-                  padding:      '0.4rem 0.75rem',
-                  borderRadius: 'var(--radius-md)',
-                  border:       '1px solid var(--color-border)',
-                  background:   'var(--color-bg)',
-                  fontSize:     '0.875rem',
-                  cursor:       'pointer',
-                }}
+                className="settings-select"
               >
                 {THEMES.map((t) => (
                   <option key={t.value} value={t.value}>{t.label}</option>
@@ -73,81 +54,59 @@ export default function Settings() {
           </div>
         </section>
 
-        {/* ── Notifications ────────────────────────────────────────── */}
-        <section style={{ marginBottom: '2rem' }}>
-          <h3 style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.5rem' }}>
-            Notifications
-          </h3>
-          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '0 1.25rem' }}>
-            <div style={{ ...rowStyle, borderBottom: 'none' }}>
+        {/* ── Notifications ── */}
+        <section className="settings-section">
+          <h3 className="settings-section-heading">Notifications</h3>
+          <div className="settings-panel">
+            <div className="settings-row">
               <div>
-                <div style={labelStyle}>Reminders</div>
-                <div style={subStyle}>Show reminders to check in with your mood.</div>
+                <div className="settings-row-label">Reminders</div>
+                <div className="settings-row-sub">Show reminders to check in with your mood.</div>
               </div>
               <button
                 role="switch"
                 aria-checked={notifications}
                 onClick={() => setNotifications((v) => !v)}
+                className="settings-toggle"
                 style={{
-                  width:        44,
-                  height:       24,
-                  borderRadius: 'var(--radius-full)',
-                  border:       'none',
-                  background:   notifications ? 'var(--color-primary)' : 'var(--color-border)',
-                  position:     'relative',
-                  cursor:       'pointer',
-                  transition:   'background 0.2s',
-                  flexShrink:   0,
+                  background: notifications ? 'var(--color-primary)' : 'var(--color-border)',
                 }}
               >
-                <span style={{
-                  position:     'absolute',
-                  top:          3,
-                  left:         notifications ? 22 : 3,
-                  width:        18,
-                  height:       18,
-                  borderRadius: '50%',
-                  background:   '#fff',
-                  transition:   'left 0.2s',
-                  boxShadow:    'var(--shadow-sm)',
-                }} />
+                <span
+                  className="settings-toggle-knob"
+                  style={{ left: notifications ? 22 : 3 }}
+                />
               </button>
             </div>
           </div>
         </section>
 
-        {/* ── Account information ──────────────────────────────────── */}
-        <section style={{ marginBottom: '2rem' }}>
-          <h3 style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.5rem' }}>
-            Account
-          </h3>
-          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '0 1.25rem' }}>
+        {/* ── Account ── */}
+        <section className="settings-section">
+          <h3 className="settings-section-heading">Account</h3>
+          <div className="settings-panel">
             {[
               { label: 'Full Name', value: user?.fullName },
               { label: 'Email',     value: user?.email    },
             ].map(({ label, value }, i, arr) => (
-              <div key={label} style={{ ...rowStyle, borderBottom: i < arr.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
-                <div style={labelStyle}>{label}</div>
-                <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>{value || '—'}</div>
+              <div
+                key={label}
+                className="settings-row"
+                style={{ borderBottom: i < arr.length - 1 ? '1px solid var(--color-border)' : 'none' }}
+              >
+                <div className="settings-row-label">{label}</div>
+                <div className="settings-row-value">{value || '—'}</div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* ── Save button ──────────────────────────────────────────── */}
+        {/* ── Save ── */}
         <button
           onClick={handleSave}
+          className="settings-save-btn"
           style={{
-            width:        '100%',
-            padding:      '0.75rem',
-            background:   saved ? 'var(--color-success)' : 'var(--color-primary)',
-            color:        '#fff',
-            border:       'none',
-            borderRadius: 'var(--radius-md)',
-            fontWeight:   600,
-            fontSize:     '0.95rem',
-            cursor:       'pointer',
-            transition:   'background 0.2s',
+            background: saved ? 'var(--color-success)' : 'var(--color-primary)',
           }}
         >
           {saved ? '✓ Saved' : 'Save preferences'}

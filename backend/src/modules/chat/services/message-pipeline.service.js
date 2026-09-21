@@ -84,13 +84,17 @@ class MessagePipelineService {
         content: userMessageText,
       });
 
-      // Persist the predefined safe crisis response — no AI generation
+      // Persist the predefined safe crisis response — no AI generation.
+      // Resources are stored in metadata so they remain available when
+      // the conversation is reloaded from history (page refresh, etc.).
+      // The frontend reads msg.metadata?.resources to render CrisisResources.
       const aiMessage = await chatService.saveMessage(userId, conversationId, {
         sender:   'ai',
         content:  safetyResult.crisisResponse,
         metadata: {
-          strategy: 'crisis_response',
-          isCrisis: true,
+          strategy:  'crisis_response',
+          isCrisis:  true,
+          resources: SAFETY_RESOURCES,          // persisted for reload
           safety: {
             status:    SAFETY_STATUS.HIGH_RISK,
             riskLevel: safetyResult.riskLevel,
@@ -193,9 +197,10 @@ class MessagePipelineService {
       sender:   'ai',
       content:  aiContent,
       metadata: {
-        strategy: responseStrategy,
-        isCrisis: false,
-        safety:   { status: safetyResult.status },
+        strategy:  responseStrategy,
+        isCrisis:  false,
+        resources: null,                        // explicitly null — never inherit crisis metadata
+        safety:    { status: safetyResult.status },
       },
     });
 

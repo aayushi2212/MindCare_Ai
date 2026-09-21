@@ -1,0 +1,260 @@
+/* ── Dashboard page styles ───────────────────────────────────────
+   Scoped with .dash-* prefix.
+   Emotion colors (background, border, text) stay inline in JSX
+   because they are keyed by runtime emotion labels.
+──────────────────────────────────────────────────────────────── */
+
+/* ── Page wrapper ────────────────────────────────────────────── */
+.dash-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem;
+}
+
+/* ── Page header ─────────────────────────────────────────────── */
+.dash-header {
+  margin-bottom: 1.5rem;
+}
+
+.dash-title {
+  font-weight: 700;
+  font-size: 1.4rem;
+}
+
+.dash-subtitle {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  margin-top: 0.2rem;
+}
+
+/* ── Section card ────────────────────────────────────────────── */
+.dash-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+}
+
+.dash-section-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  color: var(--color-text);
+}
+
+/* ── Stat cards row ──────────────────────────────────────────── */
+.dash-stats-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.dash-stat-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  flex: 1 1 130px;
+  min-width: 0;
+}
+
+.dash-stat-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.dash-stat-value {
+  font-size: 1.65rem;
+  font-weight: 700;
+  line-height: 1;
+  /* color set inline — accent prop may be primary or an emotion color */
+}
+
+.dash-stat-sub {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+}
+
+/* ── Dominant-emotion block (inside weekly section) ─────────── */
+.dash-dominant {
+  background: var(--color-surface-2);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+}
+
+.dash-dominant-label {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.dash-dominant-value {
+  font-size: 1rem;
+  font-weight: 600;
+  /* color set inline — depends on emotion */
+}
+
+/* ── Two-column grid (emotion chart + weekly) ────────────────── */
+.dash-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+/* ── Chart container ─────────────────────────────────────────── */
+.dash-chart-wrap {
+  position: relative;
+  height: 220px;
+}
+
+/* ── Mood timeline ───────────────────────────────────────────── */
+.dash-timeline-scroll {
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.dash-timeline-track {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding-top: 0.5rem;
+  /* min-width set inline — depends on number of data points */
+}
+
+.dash-timeline-point {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  width: 28px;
+}
+
+.dash-timeline-icon {
+  font-size: 0.9rem;
+}
+
+.dash-timeline-bar {
+  width: 20px;
+  height: 6px;
+  border-radius: 3px;
+  opacity: 0.85;
+  /* background set inline — depends on emotion color */
+}
+
+.dash-timeline-date {
+  font-size: 0.6rem;
+  color: #94a3b8;
+  white-space: nowrap;
+  transform: rotate(-30deg);
+  margin-top: 2px;
+}
+
+.dash-timeline-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+/* Emotion pill (legend + frequency list) */
+/* background, color, border set inline — depend on emotion color */
+.dash-emotion-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+}
+
+.dash-freq-pill {
+  font-size: 0.78rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  /* background, color, border set inline — depend on emotion */
+}
+
+.dash-freq-empty {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+/* ── History entries ─────────────────────────────────────────── */
+.dash-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.dash-history-item {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+}
+
+.dash-history-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.dash-history-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.dash-history-meta {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 0.3rem;
+}
+
+.dash-history-emotion {
+  font-weight: 600;
+  font-size: 0.875rem;
+  /* color set inline — depends on emotion */
+}
+
+.dash-history-date {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+}
+
+.dash-history-reflection {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.dash-history-empty {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+/* ── Section spacing helpers ─────────────────────────────────── */
+.dash-mb {
+  margin-bottom: 1.25rem;
+}
+
+.dash-weekly-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
